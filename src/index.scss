@@ -1,0 +1,48 @@
+$primary: #506e4b;
+$secondary: #8f5325;
+$success: #13aa34;
+$info: #7854e4;
+$warning: #b8c924;
+$danger: #d62518;
+$light: #f8f9fa;
+$dark: #343a40;
+
+$theme-colors: (
+  primary: $primary,
+  secondary: $secondary,
+  success: $success,
+  info: $info,
+  warning: $warning,
+  danger: $danger,
+  light: $light,
+  dark: $dark,
+);
+
+@import '/node_modules/bootstrap/scss/bootstrap.scss';
+
+body {
+  overflow-x: hidden;
+}
+.supabase-auth-ui_ui-container input {
+  color: #ccc;
+}
+
+.cs .textarea,
+.cs .form-control {
+  padding: 0 0.2rem;
+  color: var(--bs-body-color);
+  background-color: var(--bs-secondary-bg);
+  border: unset;
+  border: var(--bs-border-width) solid var(--bs-border-color);
+  border-radius: 0;
+  scrollbar-width: thin;
+}
+
+.cs textarea.form-control {
+  min-height: unset;
+}
+
+.cs-text {
+  scrollbar-width: thin;
+  overflow-y: auto;
+}
