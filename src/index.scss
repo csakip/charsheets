@@ -20,29 +20,61 @@ $theme-colors: (
 
 @import '/node_modules/bootstrap/scss/bootstrap.scss';
 
-body {
-  overflow-x: hidden;
+html {
+	overflow: hidden;
 }
+body {
+  overflow: hidden;
+	scrollbar-color: #888 transparent;
+	display: flex;
+	height: 100vh;
+}
+
 .supabase-auth-ui_ui-container input {
   color: #ccc;
 }
 
-.cs .textarea,
-.cs .form-control {
-  padding: 0 0.2rem;
-  color: var(--bs-body-color);
-  background-color: var(--bs-secondary-bg);
-  border: unset;
-  border: var(--bs-border-width) solid var(--bs-border-color);
-  border-radius: 0;
-  scrollbar-width: thin;
-}
+// .cs .textarea,
+// .cs .form-control {
+//   padding: 0 0.2rem;
+//   color: var(--bs-body-color);
+//   background-color: var(--bs-secondary-bg);
+//   border: unset;
+//   border: var(--bs-border-width) solid var(--bs-border-color);
+//   border-radius: 0;
+//   scrollbar-width: thin;
+// }
 
-.cs textarea.form-control {
-  min-height: unset;
-}
+// .cs textarea.form-control {
+//   min-height: unset;
+// 	resize: none;
+// }
 
 .cs-text {
   scrollbar-width: thin;
   overflow-y: auto;
+	overflow-x: hidden;
+  word-wrap: anywhere;
+}
+
+.cs-item {
+	background-color: hsl(210, 11%, 17%);
+}
+.cs-item .border-color {
+	border-color: hsl(210, 11%, 60%);
+}
+
+#viewer {
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--bs-border-color);  
+}
+
+#content {
+  position: absolute;
+  transform-origin: 0 0;
+	width: 1050px;
+	height: 1400px;
+	padding: 1rem;
+	color: $dark;
 }
