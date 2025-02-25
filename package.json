@@ -12,6 +12,11 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
+    "@tiptap/extension-superscript": "^2.11.5",
+    "@tiptap/extension-text-align": "^2.11.2",
+    "@tiptap/pm": "^2.11.2",
+    "@tiptap/react": "^2.11.2",
+    "@tiptap/starter-kit": "^2.11.2",
     "bootstrap": "^5.3.3",
     "react": "^18.3.1",
     "react-bootstrap": "^2.10.7",

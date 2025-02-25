@@ -3,8 +3,8 @@ import { PlusSquare, DashSquare } from "react-bootstrap-icons";
 
 export default function ZoomContols({ handleZoom, scale }) {
   return (
-    <div className='d-flex align-items-end gap-1'>
-      <Button variant='' className='p-0' onClick={() => handleZoom(scale - 0.125)}>
+    <div className='d-flex align-items-center gap-1'>
+      <Button variant='' className='icon-button' onClick={() => handleZoom(scale - 0.125)}>
         <DashSquare />
       </Button>
       <Form.Range
@@ -16,7 +16,7 @@ export default function ZoomContols({ handleZoom, scale }) {
         step={0.125}
         style={{ width: "150px" }}
       />
-      <Button variant='' className='p-0' onClick={() => handleZoom(scale + 0.125)}>
+      <Button variant='' className='icon-button' onClick={() => handleZoom(scale + 0.125)}>
         <PlusSquare />
       </Button>
     </div>
