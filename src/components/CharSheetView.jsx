@@ -16,6 +16,14 @@ export default function CharSheetView({ layout, items }) {
   const scrollbarX = useRef(null);
   const scrollbarY = useRef(null);
 
+  const isDraggingX = useRef(false);
+  const isDraggingY = useRef(false);
+
+  const scrollStartX = useRef(0);
+  const scrollStartY = useRef(0);
+  const scrollInitialContentPositionY = useRef(0);
+  const scrollInitialContentPositionX = useRef(0);
+
   useEffect(() => {
     const noClickScroll = (e) => {
       if (e.button === 1) {
@@ -26,11 +34,24 @@ export default function CharSheetView({ layout, items }) {
     window.addEventListener("mousedown", noClickScroll, { passive: false });
     window.addEventListener("resize", updateScrollbars);
 
+    const handleGlobalMouseMove = (e) => {
+      handleScrollbarMouseMove(e);
+    };
+
+    const handleGlobalMouseUp = () => {
+      handleScrollbarMouseUp();
+    };
+
+    window.addEventListener("mousemove", handleGlobalMouseMove);
+    window.addEventListener("mouseup", handleGlobalMouseUp);
+
     updateScrollbars();
 
     return () => {
       window.removeEventListener("mousedown", handleWheel);
       window.removeEventListener("resize", updateScrollbars);
+      window.removeEventListener("mousemove", handleGlobalMouseMove);
+      window.removeEventListener("mouseup", handleGlobalMouseUp);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -72,7 +93,7 @@ export default function CharSheetView({ layout, items }) {
       scrollbarX.current.style.opacity =
         contentRect.width > viewerRect.width ||
         (scrollLeftRatio > 0 && scrollWidthRatio > 1) ||
-        (scrollLeftRatio + scrollWidthRatio < 1 && scrollWidthRatio > 1)
+        (scrollLeftRatio + scrollWidthRatio < 0.99 && scrollWidthRatio > 1)
           ? 0.5
           : 0;
     }, 0);
@@ -124,15 +145,52 @@ export default function CharSheetView({ layout, items }) {
     if (e.buttons !== 4) return;
     viewerRef.current.style.cursor = "grabbing";
     setIsDragging(true);
-    setStart({ x: e.clientX - position.x, y: e.clientY - position.y });
-    document.body.style.userSelect = "none"; // Disable text selection
+    setStart({ x: e.clientX, y: e.clientY });
+    document.body.style.userSelect = "none";
   };
 
-  // Handle dragging
   const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    setConstrainedPosition({ x: e.clientX - start.x, y: e.clientY - start.y });
-    //updateScrollbars();
+    if (!isDragging || !viewerRef.current || !contentRef.current) return;
+
+    // Calculate movement delta since last position
+    const deltaX = e.clientX - start.x;
+    const deltaY = e.clientY - start.y;
+
+    // Update start position for next movement
+    setStart({ x: e.clientX, y: e.clientY });
+
+    // Get current boundaries
+    const viewerRect = viewerRef.current.getBoundingClientRect();
+    const contentRect = contentRef.current.getBoundingClientRect();
+
+    // Calculate new position
+    let newX = position.x + deltaX;
+    let newY = position.y + deltaY;
+
+    // Apply constraints
+    // X-axis constraints
+    if (contentRect.width <= viewerRect.width) {
+      // Content is smaller than viewer on X axis - keep within bounds
+      newX = Math.min(Math.max(newX, 0), viewerRect.width - contentRect.width);
+    } else {
+      // Content is larger - prevent scrolling past edges
+      newX = Math.min(newX, 0);
+      newX = Math.max(newX, viewerRect.width - contentRect.width);
+    }
+
+    // Y-axis constraints
+    if (contentRect.height <= viewerRect.height) {
+      // Content is smaller than viewer on Y axis - keep within bounds
+      newY = Math.min(Math.max(newY, 0), viewerRect.height - contentRect.height);
+    } else {
+      // Content is larger - prevent scrolling past edges
+      newY = Math.min(newY, 0);
+      newY = Math.max(newY, viewerRect.height - contentRect.height);
+    }
+
+    // Update position
+    setPosition({ x: newX, y: newY });
+    updateScrollbars();
   };
 
   // Handle drag end
@@ -199,19 +257,105 @@ export default function CharSheetView({ layout, items }) {
     }
   }
 
-  // function layoutChanged(layout) {
-  //   useCSStore.getState().storeLayout(layout);
-  // }
+  //-----------------------------------------------------------------------------------------------
+
+  const handleScrollbarXMouseDown = (e) => {
+    e.stopPropagation();
+    isDraggingX.current = true;
+    scrollStartX.current = e.clientX;
+    scrollInitialContentPositionX.current = position.x;
+    document.body.style.userSelect = "none";
+  };
+
+  const handleScrollbarYMouseDown = (e) => {
+    e.stopPropagation();
+    isDraggingY.current = true;
+    scrollStartY.current = e.clientY;
+    scrollInitialContentPositionY.current = position.y;
+    document.body.style.userSelect = "none";
+  };
+
+  const handleScrollbarMouseMove = (e) => {
+    if (isDraggingX.current) {
+      const deltaX = e.clientX - scrollStartX.current;
+      const deltaXPercent = deltaX / viewerRef.current.clientWidth;
+
+      if (!viewerRef.current || !contentRef.current) return;
+
+      const viewerRect = viewerRef.current.getBoundingClientRect();
+      const contentRect = contentRef.current.getBoundingClientRect();
+
+      const moveAmount = contentRect.width * deltaXPercent;
+      let newX = scrollInitialContentPositionX.current - moveAmount; // use stored initial position
+
+      newX = Math.min(newX, 0);
+      newX = Math.max(newX, viewerRect.width - contentRect.width);
+
+      setPosition((prev) => ({ ...prev, x: newX }));
+      updateScrollbars();
+    }
+
+    if (isDraggingY.current) {
+      const deltaY = e.clientY - scrollStartY.current;
+      const deltaYPercent = deltaY / viewerRef.current.clientHeight;
+
+      if (!viewerRef.current || !contentRef.current) return;
+
+      const viewerRect = viewerRef.current.getBoundingClientRect();
+      const contentRect = contentRef.current.getBoundingClientRect();
+
+      const moveAmount = contentRect.height * deltaYPercent;
+      let newY = scrollInitialContentPositionY.current - moveAmount; // use stored initial position
+
+      newY = Math.min(newY, 0);
+      newY = Math.max(newY, viewerRect.height - contentRect.height);
+
+      setPosition((prev) => ({ ...prev, y: newY }));
+      updateScrollbars();
+    }
+  };
+
+  const handleScrollbarMouseUp = () => {
+    isDraggingX.current = false;
+    isDraggingY.current = false;
+    document.body.style.userSelect = "";
+  };
 
   function setConstrainedPosition(newPosition) {
-    //TODO: constrain within page + PAGE_MARGINS
-    // if newPosition is a function
     if (typeof newPosition === "function") {
       newPosition = newPosition(position);
     }
-    console.log(newPosition);
-    const x = Math.max(newPosition.x, 0);
-    const y = Math.min(newPosition.y, 0);
+
+    if (!viewerRef.current || !contentRef.current) return;
+
+    const viewerRect = viewerRef.current.getBoundingClientRect();
+    const contentRect = contentRef.current.getBoundingClientRect();
+
+    let x = newPosition.x;
+    let y = newPosition.y;
+
+    // Case 1: Content is smaller than viewer on X axis
+    if (contentRect.width <= viewerRect.width) {
+      // Keep content within viewer bounds
+      x = Math.min(Math.max(x, 0), viewerRect.width - contentRect.width);
+    } else {
+      // Case 2: Content is larger than viewer on X axis
+      // Prevent scrolling past content edges
+      x = Math.min(x, 0); // Left edge constraint
+      x = Math.max(x, viewerRect.width - contentRect.width); // Right edge constraint
+    }
+
+    // Case 1: Content is smaller than viewer on Y axis
+    if (contentRect.height <= viewerRect.height) {
+      // Keep content within viewer bounds
+      y = Math.min(Math.max(y, 0), viewerRect.height - contentRect.height);
+    } else {
+      // Case 2: Content is larger than viewer on Y axis
+      // Prevent scrolling past content edges
+      y = Math.min(y, 0); // Top edge constraint
+      y = Math.max(y, viewerRect.height - contentRect.height); // Bottom edge constraint
+    }
+
     setPosition({ x, y });
   }
 
@@ -241,8 +385,8 @@ export default function CharSheetView({ layout, items }) {
           }}>
           <Layout cell={layout} items={items} />
         </div>
-        <div className='scrollbar-y' ref={scrollbarY}></div>
-        <div className='scrollbar-x' ref={scrollbarX}></div>
+        <div className='scrollbar-y' ref={scrollbarY} onMouseDown={handleScrollbarYMouseDown}></div>
+        <div className='scrollbar-x' ref={scrollbarX} onMouseDown={handleScrollbarXMouseDown}></div>
         <div className='scrollbar-corner'>
           <Button className='icon-button d-block' variant='' size='sm' onClick={resetZoom}>
             <Dice1 />
