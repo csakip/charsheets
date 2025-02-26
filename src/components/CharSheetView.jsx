@@ -68,34 +68,41 @@ export default function CharSheetView({ layout, items }) {
 
       const viewer = viewerRef.current;
       const content = contentRef.current;
-
-      // Get bounding rectangles
       const viewerRect = viewer.getBoundingClientRect();
       const contentRect = content.getBoundingClientRect();
 
-      const scrollTopRatio = (-1 * (contentRect.top - viewerRect.top)) / contentRect.height;
-      const scrollHeightRatio = (viewerRect.height - 32) / contentRect.height;
+      // Y axis
+      if (contentRect.height > viewerRect.height) {
+        const scrollTopRatio = (-1 * (contentRect.top - viewerRect.top)) / contentRect.height;
+        const scrollHeightRatio = (viewerRect.height - 32) / contentRect.height;
 
-      scrollbarY.current.style.top = `${scrollTopRatio * 100}%`;
-      scrollbarY.current.style.height = `${Math.max(0.02, scrollHeightRatio) * 100}%`;
-      scrollbarY.current.style.opacity =
-        contentRect.height > viewerRect.height ||
-        (scrollTopRatio > 0 && scrollHeightRatio > 1) ||
-        (scrollTopRatio + scrollHeightRatio < 1 && scrollHeightRatio > 1)
-          ? 0.5
-          : 0;
+        scrollbarY.current.style.top = `${scrollTopRatio * 100}%`;
+        scrollbarY.current.style.height = `${Math.max(0.02, scrollHeightRatio) * 100}%`;
+      } else {
+        const thumbTop = (contentRect.top - viewerRect.top) / viewerRect.height;
+        const thumbHeight = contentRect.height / viewerRect.height;
 
-      const scrollLeftRatio = (-1 * (contentRect.left - viewerRect.left)) / contentRect.width;
-      const scrollWidthRatio = viewerRect.width / contentRect.width;
+        scrollbarY.current.style.top = `${thumbTop * 100}%`;
+        scrollbarY.current.style.height = `${thumbHeight * 100}%`;
+      }
 
-      scrollbarX.current.style.left = `${scrollLeftRatio * 100}%`;
-      scrollbarX.current.style.width = `${Math.max(0.02, scrollWidthRatio) * 100}%`;
-      scrollbarX.current.style.opacity =
-        contentRect.width > viewerRect.width ||
-        (scrollLeftRatio > 0 && scrollWidthRatio > 1) ||
-        (scrollLeftRatio + scrollWidthRatio < 0.99 && scrollWidthRatio > 1)
-          ? 0.5
-          : 0;
+      // X axis
+      if (contentRect.width > viewerRect.width) {
+        const scrollLeftRatio = (-1 * (contentRect.left - viewerRect.left)) / contentRect.width;
+        const scrollWidthRatio = viewerRect.width / contentRect.width;
+
+        scrollbarX.current.style.left = `${scrollLeftRatio * 100}%`;
+        scrollbarX.current.style.width = `${Math.max(0.02, scrollWidthRatio) * 100}%`;
+        scrollbarX.current.style.opacity = 0.5;
+      } else {
+        scrollbarX.current.style.opacity = 0;
+
+        // const thumbLeft = (contentRect.left - viewerRect.left) / viewerRect.width;
+        // const thumbWidth = contentRect.width / viewerRect.width;
+
+        // scrollbarX.current.style.left = `${thumbLeft * 100}%`;
+        // scrollbarX.current.style.width = `${thumbWidth * 100}%`;
+      }
     }, 0);
   };
 
@@ -260,6 +267,7 @@ export default function CharSheetView({ layout, items }) {
   //-----------------------------------------------------------------------------------------------
 
   const handleScrollbarXMouseDown = (e) => {
+    if (e.button !== 0) return;
     e.stopPropagation();
     isDraggingX.current = true;
     scrollStartX.current = e.clientX;
@@ -268,6 +276,7 @@ export default function CharSheetView({ layout, items }) {
   };
 
   const handleScrollbarYMouseDown = (e) => {
+    if (e.button !== 0) return;
     e.stopPropagation();
     isDraggingY.current = true;
     scrollStartY.current = e.clientY;
@@ -278,38 +287,47 @@ export default function CharSheetView({ layout, items }) {
   const handleScrollbarMouseMove = (e) => {
     if (isDraggingX.current) {
       const deltaX = e.clientX - scrollStartX.current;
-      const deltaXPercent = deltaX / viewerRef.current.clientWidth;
-
       if (!viewerRef.current || !contentRef.current) return;
 
       const viewerRect = viewerRef.current.getBoundingClientRect();
       const contentRect = contentRef.current.getBoundingClientRect();
 
-      const moveAmount = contentRect.width * deltaXPercent;
-      let newX = scrollInitialContentPositionX.current - moveAmount; // use stored initial position
-
-      newX = Math.min(newX, 0);
-      newX = Math.max(newX, viewerRect.width - contentRect.width);
-
+      let newX;
+      if (contentRect.width > viewerRect.width) {
+        const deltaXPercent = deltaX / viewerRef.current.clientWidth;
+        const moveAmount = contentRect.width * deltaXPercent;
+        newX = scrollInitialContentPositionX.current - moveAmount;
+        newX = Math.min(newX, 0);
+        newX = Math.max(newX, viewerRect.width - contentRect.width);
+      } else {
+        return;
+        // newX = scrollInitialContentPositionX.current + deltaX;
+        // newX = Math.max(newX, 0);
+        // newX = Math.min(newX, viewerRect.width - contentRect.width);
+      }
       setPosition((prev) => ({ ...prev, x: newX }));
       updateScrollbars();
     }
 
     if (isDraggingY.current) {
       const deltaY = e.clientY - scrollStartY.current;
-      const deltaYPercent = deltaY / viewerRef.current.clientHeight;
-
       if (!viewerRef.current || !contentRef.current) return;
 
       const viewerRect = viewerRef.current.getBoundingClientRect();
       const contentRect = contentRef.current.getBoundingClientRect();
 
-      const moveAmount = contentRect.height * deltaYPercent;
-      let newY = scrollInitialContentPositionY.current - moveAmount; // use stored initial position
-
-      newY = Math.min(newY, 0);
-      newY = Math.max(newY, viewerRect.height - contentRect.height);
-
+      let newY;
+      if (contentRect.height > viewerRect.height) {
+        const deltaYPercent = deltaY / viewerRef.current.clientHeight;
+        const moveAmount = contentRect.height * deltaYPercent;
+        newY = scrollInitialContentPositionY.current - moveAmount;
+        newY = Math.min(newY, 0);
+        newY = Math.max(newY, viewerRect.height - contentRect.height);
+      } else {
+        newY = scrollInitialContentPositionY.current + deltaY;
+        newY = Math.max(newY, 0);
+        newY = Math.min(newY, viewerRect.height - contentRect.height);
+      }
       setPosition((prev) => ({ ...prev, y: newY }));
       updateScrollbars();
     }
@@ -385,8 +403,16 @@ export default function CharSheetView({ layout, items }) {
           }}>
           <Layout cell={layout} items={items} />
         </div>
-        <div className='scrollbar-y' ref={scrollbarY} onMouseDown={handleScrollbarYMouseDown}></div>
-        <div className='scrollbar-x' ref={scrollbarX} onMouseDown={handleScrollbarXMouseDown}></div>
+        <div
+          className='scrollbar-y'
+          ref={scrollbarY}
+          onMouseDown={handleScrollbarYMouseDown}
+          draggable={false}></div>
+        <div
+          className='scrollbar-x'
+          ref={scrollbarX}
+          onMouseDown={handleScrollbarXMouseDown}
+          draggable={false}></div>
         <div className='scrollbar-corner'>
           <Button className='icon-button d-block' variant='' size='sm' onClick={resetZoom}>
             <Dice1 />
