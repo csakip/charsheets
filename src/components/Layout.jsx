@@ -33,9 +33,7 @@ export default function Layout({ cell, items }) {
           {contentItem.type === "Label" && (
             <div className='cs-text h-100 w-100 '>{contentItem.label}</div>
           )}
-          {contentItem.type === "LabelValue" && (
-            <LabelValues rows={[{ label: contentItem.label, value: contentItem.value }]} />
-          )}
+          {contentItem.type === "LabelValue" && <LabelValues item={contentItem} />}
           {contentItem.type === "Textarea" && (
             <Form.Control
               as='textarea'

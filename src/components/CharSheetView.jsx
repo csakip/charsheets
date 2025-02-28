@@ -117,9 +117,64 @@ export default function CharSheetView({ layout, items }) {
     }, 0);
   }
 
+  function zoomToFullWidth() {
+    if (!viewerRef.current || !contentRef.current) return;
+    const viewerRect = viewerRef.current.getBoundingClientRect();
+    const originalContentWidth = contentRef.current.offsetWidth;
+
+    // Calculate scale but cap at 1.5
+    let scale = viewerRect.width / originalContentWidth;
+    scale = Math.min(scale, 1.5);
+
+    // Calculate the centered position on X-axis
+    const newWidth = originalContentWidth * scale;
+    const centeredX = (viewerRect.width - newWidth) / 2;
+
+    // Apply transform directly to prevent flickering
+    contentRef.current.style.transform = `translate(${centeredX}px, ${position.y}px) scale(${scale})`;
+
+    // Update state after the transform is applied
+    requestAnimationFrame(() => {
+      setScale(scale);
+      setConstrainedPosition({
+        x: centeredX,
+        y: position.y,
+      });
+    });
+  }
+
+  function zoomToFullHeight() {
+    if (!viewerRef.current || !contentRef.current) return;
+
+    const viewerRect = viewerRef.current.getBoundingClientRect();
+    // Use the unscaled height
+    const originalContentHeight = contentRef.current.offsetHeight;
+    const scale = viewerRect.height / originalContentHeight;
+
+    handleZoom(scale);
+
+    requestAnimationFrame(() => {
+      const newContentRect = contentRef.current.getBoundingClientRect();
+      setConstrainedPosition({
+        x: (viewerRect.width - newContentRect.width) / 2,
+        y: 0,
+      });
+    });
+  }
+
   // Handle zoom with cursor-based scaling
   const handleWheel = (e) => {
-    const isInEditor = e.target.closest(".tiptap");
+    const closestLayoutBox = e.target.closest(".layout-box");
+    const hasVerticalScroll =
+      closestLayoutBox && closestLayoutBox.scrollHeight > closestLayoutBox.clientHeight;
+    const isAtBottom =
+      closestLayoutBox &&
+      closestLayoutBox.scrollHeight - closestLayoutBox.scrollTop <=
+        closestLayoutBox.clientHeight + 1;
+    const isAtTop = closestLayoutBox && closestLayoutBox.scrollTop === 0;
+    const isInEditor =
+      e.target.closest(".tiptap") ||
+      (hasVerticalScroll && !((isAtTop && e.deltaY < 0) || (isAtBottom && e.deltaY > 0)));
     if (isInEditor) return;
 
     if (e.shiftKey) {
@@ -222,16 +277,28 @@ export default function CharSheetView({ layout, items }) {
 
   // Handle zoom with slider or buttons
   const handleZoom = (newScale) => {
+    console.log(newScale);
+    // Clamp the scale value first
+    const clampedNewScale = Math.max(0.5, Math.min(1.5, newScale));
+
+    // If scale didn't actually change (hit min/max), don't move content
+    if (clampedNewScale === scale) {
+      return;
+    }
+
     const rect = document.getElementById("content").getBoundingClientRect();
     const offsetX = rect.width / 2;
     const offsetY = rect.height / 2;
 
-    // Calculate new position to keep the center fixed
-    const newX = position.x + offsetX * (scale - newScale);
-    const newY = position.y + offsetY * (scale - newScale);
+    // Calculate position adjustments based on the actual scale change
+    const newX = position.x + offsetX * (scale - clampedNewScale);
+    const newY = position.y + offsetY * (scale - clampedNewScale);
 
+    // Apply the new position with constraints
     setConstrainedPosition({ x: newX, y: newY });
-    setScale(Math.max(0.5, Math.min(3, newScale)));
+
+    // Update the scale
+    setScale(clampedNewScale);
   };
 
   function handleKeyDown(e) {
@@ -421,7 +488,12 @@ export default function CharSheetView({ layout, items }) {
       </div>
       <div className='d-flex'>
         <div className='ms-auto'>
-          <ZoomContols handleZoom={handleZoom} scale={scale} />
+          <ZoomContols
+            handleZoom={handleZoom}
+            zoomToFullWidth={zoomToFullWidth}
+            zoomToFullHeight={zoomToFullHeight}
+            scale={scale}
+          />
         </div>
       </div>
     </>

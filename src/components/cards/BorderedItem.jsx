@@ -12,7 +12,7 @@ export default forwardRef(function BorderedItem({ item, children, className = ""
     <div
       ref={ref}
       {...props}
-      className={`d-flex flex-1 align-items-stretch ${className} overflow-auto small-scrollbars`}
+      className={`d-flex flex-1 align-items-stretch ${className} overflow-auto small-scrollbars layout-box`}
       style={styles}>
       {children}
     </div>
