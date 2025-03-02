@@ -1,9 +1,18 @@
 import { Button, Form } from "react-bootstrap";
-import { Arrows, ArrowsVertical, ZoomIn, ZoomOut } from "react-bootstrap-icons";
+import { Arrows, ArrowsVertical, ZoomIn, ZoomOut, AspectRatio } from "react-bootstrap-icons";
 
-export default function ZoomContols({ handleZoom, scale, zoomToFullWidth, zoomToFullHeight }) {
+export default function ZoomContols({
+  handleZoom,
+  scale,
+  zoomToFullWidth,
+  zoomToFullHeight,
+  resetZoom,
+}) {
   return (
     <div className='d-flex align-items-center gap-1'>
+      <Button variant='' className='icon-button d-block' size='sm' onClick={resetZoom}>
+        <AspectRatio />
+      </Button>
       <Button variant='' className='icon-button' onClick={zoomToFullWidth}>
         <Arrows />
       </Button>

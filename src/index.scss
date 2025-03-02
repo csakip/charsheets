@@ -35,12 +35,14 @@ body {
 }
 
 .cs .textarea,
+.cs .rich-text,
 .cs .form-control {
 	padding: 0 0.2rem;
 	border: unset;
 	border: var(--bs-border-width) solid var(--bs-border-color);
 	border-radius: 0;
 	scrollbar-width: thin;
+	background-color: var(--bs-body-bg);
 }
 
 .cs textarea.form-control {
@@ -70,10 +72,14 @@ body {
 #content {
 	position: absolute;
 	transform-origin: 0 0;
-	width: 1050px;
-	height: 1400px;
-	padding: 1rem;
-	color: $dark;
+	width: 1060px;
+	height: 1410px;
+	padding: 5px;
+
+	> div {
+		padding: 1rem;
+		color: $dark;
+	}
 }
 
 .scrollbar-y {
@@ -96,13 +102,6 @@ body {
 	opacity: 0.5;
 	border-radius: 4px;
 	transition: opacity 0.2s linear;
-}
-
-.scrollbar-corner {
-	position: absolute;
-	right: 0;
-	bottom: 0;
-	background-color: transparent;
 }
 
 .icon-button {
@@ -148,4 +147,58 @@ body {
 .cs .form-control:focus {
 	box-shadow: none;
 	border-color: var(--bs-tertiary-color);
+}
+
+.cs .mode-layout {
+	.content-box:hover {
+		box-shadow: #0005 0px 0px 7px 0px;
+	}
+
+	.content-box * {
+		pointer-events: none;
+		user-select: none;
+	}
+
+	.placeholder-box {
+		background: repeating-linear-gradient(45deg, #0001, #0001 2%, #0000 2%, #0000 4%);
+		background-clip: padding-box;
+		border: 1px solid #0001;
+	}
+
+	.layout-button {
+		pointer-events: all;
+		z-index: 200;
+		padding: 0;
+		padding-bottom: 2px;
+	}
+}
+
+.sidebar .dropend {
+	padding-left: 7px;
+}
+
+.sidebar .nav-item .text-small {
+	padding-left: 0;
+	padding-right: 0;
+}
+.sidebar-submenu {
+	position: absolute;
+	top: 0;
+	left: calc(100% + 1px);
+	background-color: var(--bs-body-bg);
+	width: 0px;
+	overflow: hidden;
+	height: calc(100vh - 25px);
+	border-right: 1px solid var(--bs-border-color);
+	padding-top: 8px;
+	color: var(--bs-primary-text-emphasis);
+	z-index: 10;
+	text-align: center;
+	margin: 0;
+	transition: width 0.1s linear;
+
+	&.open {
+		width: 85px;
+		box-shadow: 2px 0 5px 0 rgba(0, 0, 0, 0.4);
+	}
 }

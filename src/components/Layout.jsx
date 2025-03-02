@@ -22,22 +22,21 @@ export default function Layout({ cell, items }) {
         </BorderedItem>
       );
     case "content": {
-      const contentItem = items.find((item) => item.id === cell.id);
-      if (!contentItem) return <div className='flex-1'></div>;
+      const contentItem = items.find((item) => item.l === cell.id) ?? { type: "placeholder" };
 
       return (
         <BorderedItem
           key={cell.id}
           item={contentItem}
-          className={`${contentItem.type === "Markdown" ? "form-control rich-text" : ""} m-1`}>
-          {contentItem.type === "Label" && (
-            <div className='cs-text h-100 w-100 '>{contentItem.label}</div>
+          className={`content-box ${contentItem.type === "markdown" ? "rich-text" : ""} m-1`}>
+          {contentItem.type === "label" && (
+            <div className='cs-text h-100 w-100'>{contentItem.label}</div>
           )}
-          {contentItem.type === "LabelValue" && <LabelValues item={contentItem} />}
-          {contentItem.type === "Textarea" && (
+          {contentItem.type === "labelvalue" && <LabelValues item={contentItem} />}
+          {contentItem.type === "textarea" && (
             <Form.Control
               as='textarea'
-              className='w-100 h-100 textarea '
+              className='w-100 h-100 textarea'
               value={contentItem.value}
               spellCheck='false'
               onChange={(e) => {
@@ -45,7 +44,8 @@ export default function Layout({ cell, items }) {
               }}
             />
           )}
-          {contentItem.type === "Markdown" && <RichText content={contentItem.value} />}
+          {contentItem.type === "markdown" && <RichText content={contentItem.value} />}
+          {contentItem.type === "placeholder" && <div className='flex-1 placeholder-box'></div>}
         </BorderedItem>
       );
     }

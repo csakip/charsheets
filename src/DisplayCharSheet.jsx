@@ -13,23 +13,23 @@ const layout = {
       cells: [
         {
           type: "content",
-          id: "9287398274987329847983274987",
+          id: "dadsadw3ff",
           size: 1,
           borders: { top: 2, left: 2, right: 2, bottom: 2 },
         },
-        { type: "content", id: "kdj78ad8768ad87sa7", size: 2 },
+        { type: "content", id: "dwqddcxc", size: 2 },
         { type: "content", id: "kdj732fd7", size: 3 },
         {
           type: "column",
           cells: [
-            { type: "content", id: "321", size: 1 },
-            { type: "content", id: "434321", size: 1 },
+            { type: "content", id: "3g34g3g21", size: 1 },
+            { type: "content", id: "dfg34t", size: 1 },
           ],
         },
       ],
     },
-    { type: "content", id: "kdj78ad8768ad87sa7", size: 3 },
-    { type: "content", id: "kdj78ad8768ad87sa7", size: 3 },
+    { type: "content", id: "y65hyfhfgh", size: 3 },
+    { type: "content", id: "asdsadw", size: 3 },
   ],
 };
 
@@ -48,8 +48,8 @@ export default function DisplayCharSheet() {
 
   const [items] = useState([
     {
-      type: "LabelValue",
-      id: "9287398274987329847983274987",
+      type: "labelvalue",
+      l: "dadsadw3ff",
       labels: [
         "Item 1",
         "Item 2",
@@ -78,23 +78,23 @@ export default function DisplayCharSheet() {
       values: ["3K", null, "5K"],
     },
     {
-      type: "Label",
-      id: "kdj78ad8768ad87sa7",
+      type: "label",
+      l: "kdj732fd7",
       label: "Lorem ipsum dolor sit amet consectetur",
     },
     {
-      type: "Markdown",
-      id: "kdj732fd7",
+      type: "markdown",
+      l: "3g34g3g21",
       value: "2Lorem ipsum dolor sit amet consecteas dsa dsa dsa dsa ds dtur",
     },
     {
-      type: "Textarea",
-      id: "321",
+      type: "textarea",
+      l: "dfg34t",
       value: "3Lorem ipsum dolor sit amet consectetur",
     },
     {
-      type: "Label",
-      id: "434321",
+      type: "lLabel",
+      l: "y65hyfhfgh",
       label: "4Lorem ipsum dolor sit amet consectetur",
     },
   ]);

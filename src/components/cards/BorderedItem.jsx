@@ -1,6 +1,7 @@
-import { forwardRef } from "react";
+import { Button } from "react-bootstrap";
+import { ArrowBarRight } from "react-bootstrap-icons";
 
-export default forwardRef(function BorderedItem({ item, children, className = "", ...props }, ref) {
+export default function BorderedItem({ item, children, className = "", ...props }) {
   const borders = item.borders || {};
   const styles = [];
   borders.top && (styles.borderTopWidth = `${borders.top}px`);
@@ -10,11 +11,17 @@ export default forwardRef(function BorderedItem({ item, children, className = ""
 
   return (
     <div
-      ref={ref}
       {...props}
-      className={`d-flex flex-1 align-items-stretch ${className} overflow-auto small-scrollbars layout-box`}
+      className={`d-flex flex-1 align-items-stretch ${className} overflow-auto small-scrollbars layout-box position-relative`}
       style={styles}>
+      <Button
+        className='position-absolute layout-button'
+        style={{ top: "50%", right: 0, transform: "translateY(-50%)", width: 20, height: 30 }}
+        size='sm'
+        onClick={item.onRemove}>
+        <ArrowBarRight />
+      </Button>
       {children}
     </div>
   );
-});
+}

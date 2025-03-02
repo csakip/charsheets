@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Button } from "react-bootstrap";
-import ZoomContols from "./ZoomContols";
-import { Dice1 } from "react-bootstrap-icons";
 import Layout from "./Layout";
-
-// const PAGE_MARGINS = 50;
+import ZoomContols from "./ZoomContols";
+import csStore from "../store";
+import { useStore } from "zustand";
 
 export default function CharSheetView({ layout, items }) {
   const [scale, setScale] = useState(1);
@@ -23,6 +21,8 @@ export default function CharSheetView({ layout, items }) {
   const scrollStartY = useRef(0);
   const scrollInitialContentPositionY = useRef(0);
   const scrollInitialContentPositionX = useRef(0);
+
+  const mode = useStore(csStore, (state) => state.mode);
 
   useEffect(() => {
     const noClickScroll = (e) => {
@@ -61,8 +61,7 @@ export default function CharSheetView({ layout, items }) {
     resetZoom();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const updateScrollbars = () => {
+  function updateScrollbars() {
     setTimeout(() => {
       if (!viewerRef.current || !contentRef.current) return;
 
@@ -104,7 +103,7 @@ export default function CharSheetView({ layout, items }) {
         // scrollbarX.current.style.width = `${thumbWidth * 100}%`;
       }
     }, 0);
-  };
+  }
 
   function resetZoom() {
     if (!viewerRef.current || !contentRef.current) return;
@@ -163,7 +162,7 @@ export default function CharSheetView({ layout, items }) {
   }
 
   // Handle zoom with cursor-based scaling
-  const handleWheel = (e) => {
+  function handleWheel(e) {
     const closestLayoutBox = e.target.closest(".layout-box");
     const hasVerticalScroll =
       closestLayoutBox && closestLayoutBox.scrollHeight > closestLayoutBox.clientHeight;
@@ -173,9 +172,8 @@ export default function CharSheetView({ layout, items }) {
         closestLayoutBox.clientHeight + 1;
     const isAtTop = closestLayoutBox && closestLayoutBox.scrollTop === 0;
     const isInEditor =
-      e.target.closest(".tiptap") ||
-      (hasVerticalScroll && !((isAtTop && e.deltaY < 0) || (isAtBottom && e.deltaY > 0)));
-    if (isInEditor) return;
+      hasVerticalScroll && !((isAtTop && e.deltaY < 0) || (isAtBottom && e.deltaY > 0));
+    if (isInEditor && !e.shiftKey) return;
 
     if (e.shiftKey) {
       e.preventDefault();
@@ -200,19 +198,29 @@ export default function CharSheetView({ layout, items }) {
       const direction = e.deltaY > 0 ? -1 : 1;
       setConstrainedPosition((prev) => ({ x: prev.x, y: position.y + direction * 50 }));
     }
-  };
+  }
 
   // Handle drag start
-  const handleMouseDown = (e) => {
+  function handleMouseDown(e) {
     if (e.buttons !== 4) return;
     viewerRef.current.style.cursor = "grabbing";
     setIsDragging(true);
     setStart({ x: e.clientX, y: e.clientY });
     document.body.style.userSelect = "none";
-  };
+  }
 
-  const handleMouseMove = (e) => {
-    if (!isDragging || !viewerRef.current || !contentRef.current) return;
+  function handleMouseClick(e) {
+    if (mode !== "layout" || e.buttons !== 0) return;
+    const layoutBox = e.target.closest(".layout-box");
+    if (!layoutBox) return;
+
+    const rect = layoutBox.getBoundingClientRect();
+    console.log(rect);
+  }
+
+  function handleMouseMove(e) {
+    if (!viewerRef.current || !contentRef.current) return;
+    if (!isDragging) return;
 
     // Calculate movement delta since last position
     const deltaX = e.clientX - start.x;
@@ -253,31 +261,30 @@ export default function CharSheetView({ layout, items }) {
     // Update position
     setPosition({ x: newX, y: newY });
     updateScrollbars();
-  };
+  }
 
   // Handle drag end
-  const handleMouseUp = () => {
+  function handleMouseUp() {
     viewerRef.current.style.cursor = "default";
     setIsDragging(false);
     document.body.style.userSelect = "";
-  };
+  }
 
-  const handleMouseLeave = () => {
+  function handleMouseLeave() {
     if (!isDragging) return;
     setIsDragging(false);
     viewerRef.current.style.cursor = "default";
-  };
+  }
 
   // Resume dragging on mouse enter if button is still pressed
-  const handleMouseEnter = (e) => {
+  function handleMouseEnter(e) {
     if (e.buttons !== 4) return;
     setIsDragging(true);
     viewerRef.current.style.cursor = "grabbing";
-  };
+  }
 
   // Handle zoom with slider or buttons
-  const handleZoom = (newScale) => {
-    console.log(newScale);
+  function handleZoom(newScale) {
     // Clamp the scale value first
     const clampedNewScale = Math.max(0.5, Math.min(1.5, newScale));
 
@@ -299,7 +306,7 @@ export default function CharSheetView({ layout, items }) {
 
     // Update the scale
     setScale(clampedNewScale);
-  };
+  }
 
   function handleKeyDown(e) {
     if (document.activeElement.id !== "viewer") return;
@@ -341,17 +348,16 @@ export default function CharSheetView({ layout, items }) {
     scrollInitialContentPositionX.current = position.x;
     document.body.style.userSelect = "none";
   };
-
-  const handleScrollbarYMouseDown = (e) => {
+  function handleScrollbarYMouseDown(e) {
     if (e.button !== 0) return;
     e.stopPropagation();
     isDraggingY.current = true;
     scrollStartY.current = e.clientY;
     scrollInitialContentPositionY.current = position.y;
     document.body.style.userSelect = "none";
-  };
+  }
 
-  const handleScrollbarMouseMove = (e) => {
+  function handleScrollbarMouseMove(e) {
     if (isDraggingX.current) {
       const deltaX = e.clientX - scrollStartX.current;
       if (!viewerRef.current || !contentRef.current) return;
@@ -398,13 +404,13 @@ export default function CharSheetView({ layout, items }) {
       setPosition((prev) => ({ ...prev, y: newY }));
       updateScrollbars();
     }
-  };
+  }
 
-  const handleScrollbarMouseUp = () => {
+  function handleScrollbarMouseUp() {
     isDraggingX.current = false;
     isDraggingY.current = false;
     document.body.style.userSelect = "";
-  };
+  }
 
   function setConstrainedPosition(newPosition) {
     if (typeof newPosition === "function") {
@@ -452,23 +458,26 @@ export default function CharSheetView({ layout, items }) {
         id='viewer'
         ref={viewerRef}
         tabIndex={0}
-        className='d-flex flex-1 position-relative'
+        className={`d-flex flex-1 position-relative mode-${mode}`}
         onWheel={handleWheel}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseDown={handleMouseDown}
         onMouseLeave={handleMouseLeave}
         onMouseEnter={handleMouseEnter}
-        onKeyDown={handleKeyDown}>
+        onKeyDown={handleKeyDown}
+        onClick={handleMouseClick}>
         <div
           id='content'
           ref={contentRef}
           data-bs-theme='light'
-          className='bg-light d-flex'
+          className='d-flex'
           style={{
             transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
           }}>
-          <Layout cell={layout} items={items} />
+          <div className='bg-light d-flex flex-1'>
+            <Layout cell={layout} items={items} />
+          </div>
         </div>
         <div
           className='scrollbar-y'
@@ -480,11 +489,6 @@ export default function CharSheetView({ layout, items }) {
           ref={scrollbarX}
           onMouseDown={handleScrollbarXMouseDown}
           draggable={false}></div>
-        <div className='scrollbar-corner'>
-          <Button className='icon-button d-block' variant='' size='sm' onClick={resetZoom}>
-            <Dice1 />
-          </Button>
-        </div>
       </div>
       <div className='d-flex'>
         <div className='ms-auto'>
@@ -492,6 +496,7 @@ export default function CharSheetView({ layout, items }) {
             handleZoom={handleZoom}
             zoomToFullWidth={zoomToFullWidth}
             zoomToFullHeight={zoomToFullHeight}
+            resetZoom={resetZoom}
             scale={scale}
           />
         </div>

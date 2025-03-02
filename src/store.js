@@ -4,9 +4,10 @@ import { subscribeWithSelector } from "zustand/middleware";
 
 const UNDO_LEVELS = 10;
 
-const useCSStore = create(
+const csStore = create(
   persist(
     subscribeWithSelector((set) => ({
+      mode: "view",
       campaignId: undefined,
       layouts: [],
       charSheets: [],
@@ -36,4 +37,4 @@ const useCSStore = create(
   )
 );
 
-export default useCSStore;
+export default csStore;
